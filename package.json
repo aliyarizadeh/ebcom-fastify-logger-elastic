@@ -1,0 +1,35 @@
+{
+  "name": "fastify-logger-elastic",
+  "version": "1.0.0",
+  "description": "Capture all logs from fastify framework without pino ",
+  "author": "Ali Yarizadeh",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alitigerk9/fastify-logger-elastic.git"
+  },
+  "keywords": [
+    "fastify",
+    "log",
+    "logger",
+    "elastic",
+    "elk"
+  ],
+  "devDependencies": {
+    "eslint": "^8.25.0",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-n": "^15.3.0",
+    "eslint-plugin-promise": "^6.0.1",
+    "eslint-plugin-security": "^1.4.0"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alitigerk9/fastify-logger-elastic/issues"
+  },
+  "homepage": "https://github.com/alitigerk9/fastify-logger-elastic#readme"
+}
