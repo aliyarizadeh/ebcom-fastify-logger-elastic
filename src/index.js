@@ -4,15 +4,19 @@ const elasticConnection = require('./lib/elasticConnection');
 const logger = require('./lib/logger');
 const { idGenerator, optionValidate } = require('./lib/utils');
 
+// const log = async (message, log) => {
+//   console.log(message, log);
+// };
+
 module.exports = fp(async (fastify, options, next) => {
   logger.getClient(await elasticConnection(optionValidate(options)));
 
-  const { captureLog, captureErrorLog/*, log */ } = logger;
+  const { captureLog, captureErrorLog, log } = logger;
 
   fastify.addHook('onRequest', (request, reply, done) => {
-    request.timestamp = Date.now();
+    request.timestamp = new Date();
     request.transactionId = idGenerator();
-    // request.log = log;
+    request.log = log;
     done();
   });
 

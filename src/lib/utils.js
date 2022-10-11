@@ -1,19 +1,26 @@
 const path = require('path');
 const uuid = require('uuid');
 
+global.SAVE_TO_FILE = false;
+global.FILE_PATH = '../../../';
+global.FILE_NAME = 'service.log';
+global.ELASTIC_INDEX = 'default';
+
 const idGenerator = () => (`${uuid.v4().replaceAll('-', '')}${uuid.v4().replaceAll('-', '')}`);
 
 function optionValidate (options) {
   if (options && typeof options !== 'object') throw new Error('Options should be an object');
-  if (options) {
-    const validOptions = ['node', 'nodes', 'auth', 'maxRetries', 'requestTimeout', 'pingTimeout', 'sniffInterval', 'sniffOnStart', 'sniffEndpoint', 'sniffOnConnectionFault', 'resurrectStrategy',
-      'suggestCompression', 'compression', 'tls', 'proxy', 'agent', 'nodeFilter', 'nodeSelector', 'generateRequestId', 'name', 'opaqueIdPrefix', 'headers', 'context', 'enableMetaHeader', 'cloud',
-      'disablePrototypePoisoningProtection', 'caFingerprint', 'maxResponseSize', 'maxCompressedResponseSize', 'ConnectionPool', 'Connection', 'Serializer', 'path', 'fileName', 'saveFile'];
+  const validOptions = ['index', 'node', 'nodes', 'auth', 'maxRetries', 'requestTimeout', 'pingTimeout', 'sniffInterval', 'sniffOnStart', 'sniffEndpoint', 'sniffOnConnectionFault', 'resurrectStrategy',
+    'suggestCompression', 'compression', 'tls', 'proxy', 'agent', 'nodeFilter', 'nodeSelector', 'generateRequestId', 'name', 'opaqueIdPrefix', 'headers', 'context', 'enableMetaHeader', 'cloud',
+    'disablePrototypePoisoningProtection', 'caFingerprint', 'maxResponseSize', 'maxCompressedResponseSize', 'ConnectionPool', 'Connection', 'Serializer', 'path', 'fileName', 'saveFile'];
 
+  if (options) {
     for (const o in options) {
       if (validOptions.indexOf(o) < 0) throw new Error(`Field ${o} is not valid option`);
     }
   }
+
+  if (options.index && typeof options.index === 'string') global.ELASTIC_INDEX = options.index;
 
   if (options.saveFile && typeof options.saveFile === 'boolean') {
     global.SAVE_TO_FILE = true;
@@ -33,6 +40,7 @@ function optionValidate (options) {
 
 function filterData (data) {
   let { request, response } = data;
+  const filtered = {};
 
   if (request && request.length && (request.startsWith('{') || request.startsWith('['))) request = JSON.parse(request);
   if (response && response.length && (response.startsWith('{') || response.startsWith('['))) response = JSON.parse(response);
@@ -41,16 +49,18 @@ function filterData (data) {
   if (request?.headers?.refresh_token) request.headers.refresh_token = '***************';
   if (request?.headers?.refreshToken) request.headers.refreshToken = '***************';
   if (request?.headers?.token) request.headers.token = '***************';
-  if (request?.body?.pin1) request.body.pin1 = '***************';
-  if (request?.body?.pin) request.body.pin = '***************';
-  if (request?.body?.cvv2) request.body.cvv2 = '***************';
-  if (request?.body?.password) request.body.password = '***************';
+  if (request?.payload?.pin1) request.payload.pin1 = '***************';
+  if (request?.payload?.pin) request.payload.pin = '***************';
+  if (request?.payload?.cvv2) request.payload.cvv2 = '***************';
+  if (request?.payload?.password) request.payload.password = '***************';
 
-  if (response?.body?.token) response.body.token = '***************';
-  if (response?.body?.refresh_token) response.body.refresh_token = '***************';
-  if (response?.body?.refreshToken) response.body.refreshToken = '***************';
+  if (response?.payload?.token) response.payload.token = '***************';
+  if (response?.payload?.refresh_token) response.payload.refresh_token = '***************';
+  if (response?.payload?.refreshToken) response.payload.refreshToken = '***************';
 
-  return Object.assign(data, { request: JSON.stringify(request), response: JSON.stringify(response) });
+  Object.assign(filtered, { ...data, request: JSON.stringify(request), response: JSON.stringify(response) });
+
+  return JSON.stringify(filtered);
 };
 
 function logLevel (statusCode) {

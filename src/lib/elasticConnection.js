@@ -9,10 +9,8 @@ class MySerializer extends Serializer {
 }
 
 const defaultOptions = {
-  // Serializer: MySerializer,
+  Serializer: MySerializer,
   node: 'http://localhost:9200',
-  // requestTimeout: 10000,
-  // compression: false,
   headers: {
     service_name: 'fastify-service'
   }
@@ -33,8 +31,6 @@ module.exports = async (options) => {
 };
 
 setInterval(async () => {
-  console.log(global.SAVE_TO_FILE); // TODO remove this line
-
   try {
     const healthCheck = await client?.cat?.health();
     if (healthCheck.indexOf('red') > 0) global.SAVE_TO_FILE = true;

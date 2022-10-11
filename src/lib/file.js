@@ -1,8 +1,5 @@
 /* eslint-disable n/no-path-concat */
 const fs = require('fs').promises;
-global.SAVE_TO_FILE = false;
-global.FILE_PATH = '../../../';
-global.FILE_NAME = 'service.log';
 
 const writeToFile = async (data) => {
   try {

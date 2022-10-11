@@ -3,8 +3,26 @@ const { parseBody, logLevel } = require('./utils');
 
 let client;
 
-const log = async (message, data) => {
-  console.log(message, data);
+// TODO this feature in not completed
+const log = async (message = 'Custom log', data) => {
+  if (message && typeof message !== 'string') throw new Error('Message should be string');
+
+  data = {
+    index: global.ELASTIC_INDEX,
+    body: { message, timestamp: new Date() }
+  };
+
+  try {
+    if (!global.SAVE_TO_FILE) {
+      await client.index(data);
+    } else {
+      await writeToFile(data);
+    }
+  } catch (e) {
+    await writeToFile(data);
+  }
+
+  return true;
 };
 
 // // Capture normal request response logs
@@ -17,27 +35,28 @@ const captureLog = async (req, res, payload) => {
     headers: res.request?.headers,
     params: res.request?.params,
     query: res.request?.query,
-    body: parseBody(res.request?.body, 'REQUEST'),
-    timestamp: req.timestamp || Date.now()
+    payload: parseBody(res.request?.body, 'REQUEST'),
+    timestamp: req.timestamp || new Date()
   };
 
   const response = {
     url: req.url,
     statusCode: res.statusCode,
     headers: res.headers,
-    body: parseBody(payload, 'RESPONSE'),
-    timestamp: Date.now()
+    payload: parseBody(payload, 'RESPONSE'),
+    timestamp: new Date()
   };
 
   try {
     data = {
-      index: 'test-app',
+      index: global.ELASTIC_INDEX,
       body: {
         transactionId: res.request.transactionId,
         level: logLevel(res.statusCode),
         hostname: res.request?.hostname,
         request: global.SAVE_TO_FILE ? request : JSON.stringify(request),
-        response: global.SAVE_TO_FILE ? response : JSON.stringify(response)
+        response: global.SAVE_TO_FILE ? response : JSON.stringify(response),
+        timestamp: new Date()
       }
     };
 
@@ -55,12 +74,13 @@ const captureLog = async (req, res, payload) => {
 
 const captureErrorLog = async (req, res, error) => {
   const data = {
-    index: 'test-app',
+    index: global.ELASTIC_INDEX,
     body: {
       transactionId: req.transactionId,
       stack: error.stack,
       error: error.message || 'Unhandled error',
-      code: error.code || undefined
+      code: error.code || undefined,
+      timestamp: req.timestamp || new Date()
     }
   };
 
