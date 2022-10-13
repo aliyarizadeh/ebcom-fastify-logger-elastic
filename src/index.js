@@ -15,7 +15,7 @@ module.exports = fp(async (fastify, options, next) => {
 
   fastify.addHook('onRequest', (request, reply, done) => {
     request.timestamp = new Date();
-    request.transactionId = idGenerator();
+    if (global.GENERATE_ID) request.transactionId = idGenerator();
     request.log = log;
     done();
   });

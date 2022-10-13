@@ -5,6 +5,8 @@ global.SAVE_TO_FILE = false;
 global.FILE_PATH = '../../../';
 global.FILE_NAME = 'service.log';
 global.ELASTIC_INDEX = 'default';
+global.GENERATE_ID = true;
+global.INTERVAL_TIME = 10;
 
 const idGenerator = () => (`${uuid.v4().replaceAll('-', '')}${uuid.v4().replaceAll('-', '')}`);
 
@@ -12,7 +14,8 @@ function optionValidate (options) {
   if (options && typeof options !== 'object') throw new Error('Options should be an object');
   const validOptions = ['index', 'node', 'nodes', 'auth', 'maxRetries', 'requestTimeout', 'pingTimeout', 'sniffInterval', 'sniffOnStart', 'sniffEndpoint', 'sniffOnConnectionFault', 'resurrectStrategy',
     'suggestCompression', 'compression', 'tls', 'proxy', 'agent', 'nodeFilter', 'nodeSelector', 'generateRequestId', 'name', 'opaqueIdPrefix', 'headers', 'context', 'enableMetaHeader', 'cloud',
-    'disablePrototypePoisoningProtection', 'caFingerprint', 'maxResponseSize', 'maxCompressedResponseSize', 'ConnectionPool', 'Connection', 'Serializer', 'path', 'fileName', 'saveFile'];
+    'disablePrototypePoisoningProtection', 'caFingerprint', 'maxResponseSize', 'maxCompressedResponseSize', 'ConnectionPool', 'Connection', 'Serializer', 'path', 'fileName', 'saveFile', 'generateId',
+    'timer'];
 
   if (options) {
     for (const o in options) {
@@ -21,6 +24,8 @@ function optionValidate (options) {
   }
 
   if (options.index && typeof options.index === 'string') global.ELASTIC_INDEX = options.index;
+  if (typeof options.generateId === 'boolean') global.GENERATE_ID = options.generateId;
+  if (options.timer && (typeof options.timer === 'number' || !isNaN(options.timer))) global.INTERVAL_TIME = Number(options.timer);
 
   if (options.saveFile && typeof options.saveFile === 'boolean') {
     global.SAVE_TO_FILE = true;

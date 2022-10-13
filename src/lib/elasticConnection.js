@@ -34,7 +34,8 @@ setInterval(async () => {
   try {
     const healthCheck = await client?.cat?.health();
     if (healthCheck.indexOf('red') > 0) global.SAVE_TO_FILE = true;
+    if (global.SAVE_TO_FILE && !healthCheck.indexOf('red') > 0) global.SAVE_TO_FILE = false;
   } catch (e) {
     global.SAVE_TO_FILE = true;
   }
-}, 5 * 1000); // 5 Minute
+}, global.INTERVAL_TIME * 1000); // 5 Minute
