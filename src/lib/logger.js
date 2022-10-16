@@ -3,14 +3,21 @@ const { parseBody, logLevel } = require('./utils');
 
 let client;
 
-// TODO this feature in not completed
 const log = async (message = 'Custom log', data) => {
   if (message && typeof message !== 'string') throw new Error('Message should be string');
 
-  data = {
-    index: global.ELASTIC_INDEX,
-    body: { message, timestamp: new Date() }
-  };
+  if (data && typeof data === 'object') {
+    data = {
+      index: global.ELASTIC_INDEX,
+      body: {
+        message,
+        statusCode: data.statusCode,
+        request: data.request[Object.getOwnPropertySymbols(data.request).find((s) => String(s) === 'Symbol(body)')] || undefined,
+        response: data.body,
+        timestamp: new Date()
+      }
+    };
+  }
 
   try {
     if (!global.SAVE_TO_FILE) {

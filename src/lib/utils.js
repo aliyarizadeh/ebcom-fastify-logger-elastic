@@ -42,6 +42,7 @@ function optionValidate (options) {
 
   return options;
 };
+const filter__ = ['cvv2', 'pass', 'password', 'token', 'TOKEN', 'refresh_token', 'refreshToken', 'pin', 'pin1', 'authorization'];
 
 function filterData (data) {
   let { request, response } = data;
@@ -50,18 +51,14 @@ function filterData (data) {
   if (request && request.length && (request.startsWith('{') || request.startsWith('['))) request = JSON.parse(request);
   if (response && response.length && (response.startsWith('{') || response.startsWith('['))) response = JSON.parse(response);
 
-  if (request?.headers?.authorization) request.headers.authorization = '***************';
-  if (request?.headers?.refresh_token) request.headers.refresh_token = '***************';
-  if (request?.headers?.refreshToken) request.headers.refreshToken = '***************';
-  if (request?.headers?.token) request.headers.token = '***************';
-  if (request?.payload?.pin1) request.payload.pin1 = '***************';
-  if (request?.payload?.pin) request.payload.pin = '***************';
-  if (request?.payload?.cvv2) request.payload.cvv2 = '***************';
-  if (request?.payload?.password) request.payload.password = '***************';
+  filter__.forEach((f) => {
+    if (request?.headers[f]) request.headers[f] = '***************';
+    if (request?.body[f]) request.body[f] = '***************';
+  });
 
-  if (response?.payload?.token) response.payload.token = '***************';
-  if (response?.payload?.refresh_token) response.payload.refresh_token = '***************';
-  if (response?.payload?.refreshToken) response.payload.refreshToken = '***************';
+  filter__.forEach((f) => {
+    if (response?.payload[f]) response.payload[f] = '***************';
+  });
 
   Object.assign(filtered, { ...data, request: JSON.stringify(request), response: JSON.stringify(response) });
 
