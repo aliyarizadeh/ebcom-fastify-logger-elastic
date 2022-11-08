@@ -21,6 +21,7 @@
   "dependencies": {
     "@elastic/elasticsearch": "^8.4.0",
     "fastify-plugin": "^4.2.1",
+    "pino": "^8.7.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {

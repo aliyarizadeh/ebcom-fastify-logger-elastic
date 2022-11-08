@@ -3,17 +3,30 @@ const { parseBody, logLevel } = require('./utils');
 
 let client;
 
-const log = async (message = 'Custom log', data) => {
+const log = async (message = 'Custom log', transactionId, data) => {
   if (message && typeof message !== 'string') throw new Error('Message should be string');
-
+  if (!transactionId || typeof transactionId !== 'string') throw new Error('Invalid transaction id');
   if (data && typeof data === 'object') {
     data = {
       index: global.ELASTIC_INDEX,
       body: {
+        transactionId,
         message,
+        url: data.requestUrl,
+        method: data.request.options.method,
         statusCode: data.statusCode,
-        request: data.request[Object.getOwnPropertySymbols(data.request).find((s) => String(s) === 'Symbol(body)')] || undefined,
-        response: data.body,
+        requestHeaders: data?.request?.options?.headers,
+        requestPayload: data.request[Object.getOwnPropertySymbols(data.request).find((s) => String(s) === 'Symbol(body)')] || undefined,
+        responseHeaders: data.request[Object.getOwnPropertySymbols(data.request).find((s) => String(s) === 'Symbol(response)')]?.rawHeaders || undefined,
+        responsePayload: parseBody(data.body, 'RESPONSE'),
+        timestamp: new Date()
+      }
+    };
+  } else {
+    data = {
+      index: global.ELASTIC_INDEX,
+      body: {
+        message,
         timestamp: new Date()
       }
     };
@@ -38,19 +51,20 @@ const captureLog = async (req, res, payload) => {
 
   const request = {
     url: req.url,
+    ip: undefined,
     method: res.request?.method,
     headers: res.request?.headers,
     params: res.request?.params,
     query: res.request?.query,
-    payload: parseBody(res.request?.body, 'REQUEST'),
+    requestPayload: parseBody(res.request?.body, 'REQUEST'),
     timestamp: req.timestamp || new Date()
   };
 
   const response = {
     url: req.url,
     statusCode: res.statusCode,
-    headers: res.headers,
-    payload: parseBody(payload, 'RESPONSE'),
+    headers: res[Object.getOwnPropertySymbols(res).find((s) => String(s) === 'Symbol(fastify.reply.headers)')],
+    responsePayload: parseBody(payload, 'RESPONSE'),
     timestamp: new Date()
   };
 
@@ -59,14 +73,15 @@ const captureLog = async (req, res, payload) => {
       index: global.ELASTIC_INDEX,
       body: {
         transactionId: res.request.transactionId,
-        level: logLevel(res.statusCode),
-        hostname: res.request?.hostname,
-        request: global.SAVE_TO_FILE ? request : JSON.stringify(request),
-        response: global.SAVE_TO_FILE ? response : JSON.stringify(response),
+        _doc: {
+          level: logLevel(res.statusCode),
+          hostname: res.request?.hostname,
+          request,
+          response
+        },
         timestamp: new Date()
       }
     };
-
     if (!global.SAVE_TO_FILE) {
       await client.index(data);
     } else {

@@ -1,10 +1,10 @@
 const { Client, Serializer } = require('@elastic/elasticsearch');
 
-const { filterData } = require('./utils');
+const { serializer } = require('./utils');
 
 class MySerializer extends Serializer {
   serialize (object) {
-    return filterData(object);
+    return serializer(object);
   }
 }
 
@@ -33,7 +33,7 @@ module.exports = async (options) => {
 setInterval(async () => {
   try {
     const healthCheck = await client?.cat?.health();
-    if (healthCheck.indexOf('red') > 0) global.SAVE_TO_FILE = true;
+    if (healthCheck.indexOf('red') >= 0) global.SAVE_TO_FILE = true;
     if (global.SAVE_TO_FILE && !healthCheck.indexOf('red') > 0) global.SAVE_TO_FILE = false;
   } catch (e) {
     global.SAVE_TO_FILE = true;

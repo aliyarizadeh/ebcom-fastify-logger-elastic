@@ -1,14 +1,27 @@
-/* eslint-disable n/no-path-concat */
-const fs = require('fs').promises;
+const pino = require('pino');
+const { serializer } = require('./utils');
+
+const logger = pino({
+  timestamp: false,
+  formatters: {
+    level (label, number) {
+      return { _level: number };
+    }
+  }
+}, pino.destination({
+  dest: `${global.FILE_PATH}/${global.FILE_NAME}`,
+  sync: false // Asynchronous logging
+}));
 
 const writeToFile = async (data) => {
-  try {
-    await fs.stat(`${global.FILE_PATH}${global.FILE_NAME}`);
-    await fs.appendFile(`${global.FILE_PATH}${global.FILE_NAME}`, `${JSON.stringify(data)}\n`);
-  } catch (error) {
-    if (error?.code === 'ENOENT') {
-      await fs.writeFile(`${global.FILE_PATH}${global.FILE_NAME}`, `${JSON.stringify(data)}\n`);
-    } else throw error;
+  switch (data.body._doc.level) {
+    case 30: logger.info(serializer(data.body, true));
+      break;
+    case 40: logger.warn(serializer(data.body, true));
+      break;
+    case 50: logger.error(serializer(data.body, true));
+      break;
+    default: //
   }
 };
 
