@@ -4,10 +4,6 @@ const elasticConnection = require('./lib/elasticConnection');
 const logger = require('./lib/logger');
 const { idGenerator, optionValidate } = require('./lib/utils');
 
-// const log = async (message, log) => {
-//   console.log(message, log);
-// };
-
 module.exports = fp(async (fastify, options, next) => {
   logger.getClient(await elasticConnection(optionValidate(options)));
 

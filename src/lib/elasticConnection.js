@@ -36,6 +36,6 @@ setInterval(async () => {
     if (healthCheck.indexOf('red') >= 0) global.SAVE_TO_FILE = true;
     if (global.SAVE_TO_FILE && !healthCheck.indexOf('red') > 0) global.SAVE_TO_FILE = false;
   } catch (e) {
-    global.SAVE_TO_FILE = true;
+    global.SAVE_TO_FILE = false; // TODO Change to true
   }
-}, global.INTERVAL_TIME * 1000); // 5 Minute
+}, global.INTERVAL_TIME * 60 * 1000); // 5 Minute

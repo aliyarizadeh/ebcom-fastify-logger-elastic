@@ -11,7 +11,7 @@ global.FILTER_FIELD = ['cvv2', 'pass', 'password', 'token', 'TOKEN', 'refresh_to
 global.FILTER_TAGS = '';
 const idGenerator = () => (`${uuid.v4().replaceAll('-', '')}${uuid.v4().replaceAll('-', '')}`);
 
-function optionValidate (options) {
+function optionValidate(options) {
   if (options && typeof options !== 'object') throw new Error('Options should be an object');
   const validOptions = ['index', 'node', 'nodes', 'auth', 'maxRetries', 'requestTimeout', 'pingTimeout', 'sniffInterval', 'sniffOnStart', 'sniffEndpoint', 'sniffOnConnectionFault', 'resurrectStrategy',
     'suggestCompression', 'compression', 'tls', 'proxy', 'agent', 'nodeFilter', 'nodeSelector', 'generateRequestId', 'name', 'opaqueIdPrefix', 'headers', 'context', 'enableMetaHeader', 'cloud',
@@ -47,14 +47,14 @@ function optionValidate (options) {
   return options;
 };
 
-function serializer (data, writeToFile = false) {
+function serializer(data, writeToFile = false) {
   let { request, response } = data?._doc;
   const filtered = {};
 
   if (request && typeof request === 'string' && (request.startsWith('{') || request.startsWith('['))) request = JSON.parse(request);
   if (response && typeof request === 'string' && (response.startsWith('{') || response.startsWith('['))) response = JSON.parse(response);
 
-  if (typeof request !== 'object' || typeof response !== 'object') throw new Error('Invalid request or response type');
+  if ((request && typeof request !== 'object') || (response && typeof response !== 'object')) throw new Error('Invalid request or response type');
 
   global.FILTER_FIELD.forEach((f) => {
     if (request?.headers && request?.headers[f]) request.headers[f] = '***************';
@@ -71,7 +71,7 @@ function serializer (data, writeToFile = false) {
   else return JSON.stringify(filtered);
 };
 
-function logLevel (statusCode) {
+function logLevel(statusCode) {
   let level;
 
   if (statusCode && (statusCode >= 100 && statusCode < 400)) level = 30;
@@ -82,7 +82,7 @@ function logLevel (statusCode) {
   return level;
 };
 
-function parseBody (body, state) {
+function parseBody(body, state) {
   let data;
 
   if (state === 'REQUEST') {
@@ -93,10 +93,10 @@ function parseBody (body, state) {
     } else {
       try {
         if (body && body.length && typeof body === 'string' && (body.startsWith('{') || body.startsWith('['))) data = JSON.parse(body);
-        if (Array.isArray(data) && data.length > 3) data = 'bulk-data';
-        if (body && body.length > 1024) data = 'bulk-data';
+        if (Array.isArray(body) && body.length > 3) data = { data: 'bulk-data' };
+        if (body && body.length > 1024) data = { data: 'bulk-data' };
       } catch (e) {
-        data = 'bulk-data';
+        data = { data: 'bulk-data' };
       }
     }
   } else throw new Error('UNKNOWN state');

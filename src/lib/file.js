@@ -14,14 +14,14 @@ const logger = pino({
 }));
 
 const writeToFile = async (data) => {
-  switch (data.body._doc.level) {
+  switch (data?.body?._doc?.level) {
     case 30: logger.info(serializer(data.body, true));
       break;
     case 40: logger.warn(serializer(data.body, true));
       break;
     case 50: logger.error(serializer(data.body, true));
       break;
-    default: //
+    default: logger.info(serializer(data.body, true));
   }
 };
 

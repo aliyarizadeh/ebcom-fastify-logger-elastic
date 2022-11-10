@@ -3,22 +3,33 @@ const { parseBody, logLevel } = require('./utils');
 
 let client;
 
-const log = async (message = 'Custom log', transactionId, data) => {
+const log = async (data, transactionId, message = 'Custom log') => {
+  let request;
+  // let response;
+
   if (message && typeof message !== 'string') throw new Error('Message should be string');
   if (!transactionId || typeof transactionId !== 'string') throw new Error('Invalid transaction id');
   if (data && typeof data === 'object') {
+    request = data.request[Object.getOwnPropertySymbols(data.request).find((s) => String(s) === 'Symbol(body)')];
+    if (data.request && typeof request === 'string' && (request.startsWith('{') || request.startsWith('['))) request = JSON.parse(request);
     data = {
       index: global.ELASTIC_INDEX,
       body: {
         transactionId,
         message,
-        url: data.requestUrl,
-        method: data.request.options.method,
-        statusCode: data.statusCode,
-        requestHeaders: data?.request?.options?.headers,
-        requestPayload: data.request[Object.getOwnPropertySymbols(data.request).find((s) => String(s) === 'Symbol(body)')] || undefined,
-        responseHeaders: data.request[Object.getOwnPropertySymbols(data.request).find((s) => String(s) === 'Symbol(response)')]?.rawHeaders || undefined,
-        responsePayload: parseBody(data.body, 'RESPONSE'),
+        _doc: {
+          url: data.requestUrl,
+          method: data.request.options.method,
+          statusCode: data.statusCode,
+          request: {
+            requestHeaders: data?.request?.options?.headers,
+            requestPayload: request
+          },
+          response: {
+            responseHeaders: data.request[Object.getOwnPropertySymbols(data.request).find((s) => String(s) === 'Symbol(response)')]?.rawHeaders || undefined,
+            responsePayload: parseBody(data.body, 'RESPONSE')
+          }
+        },
         timestamp: new Date()
       }
     };
@@ -26,6 +37,7 @@ const log = async (message = 'Custom log', transactionId, data) => {
     data = {
       index: global.ELASTIC_INDEX,
       body: {
+        transactionId,
         message,
         timestamp: new Date()
       }
@@ -34,7 +46,7 @@ const log = async (message = 'Custom log', transactionId, data) => {
 
   try {
     if (!global.SAVE_TO_FILE) {
-      await client.index(data);
+      await client.index(data); // custom log
     } else {
       await writeToFile(data);
     }
@@ -45,7 +57,7 @@ const log = async (message = 'Custom log', transactionId, data) => {
   return true;
 };
 
-// // Capture normal request response logs
+// Capture normal request response logs
 const captureLog = async (req, res, payload) => {
   let data;
 
@@ -83,7 +95,7 @@ const captureLog = async (req, res, payload) => {
       }
     };
     if (!global.SAVE_TO_FILE) {
-      await client.index(data);
+      await client.index(data); // request log
     } else {
       await writeToFile(data);
     }
@@ -99,6 +111,9 @@ const captureErrorLog = async (req, res, error) => {
     index: global.ELASTIC_INDEX,
     body: {
       transactionId: req.transactionId,
+      _doc: {
+        level: 50
+      },
       stack: error.stack,
       error: error.message || 'Unhandled error',
       code: error.code || undefined,
@@ -108,7 +123,7 @@ const captureErrorLog = async (req, res, error) => {
 
   try {
     if (!global.SAVE_TO_FILE) {
-      await client.index(data);
+      await client.index(data); // Error
     } else {
       await writeToFile(data);
     }
