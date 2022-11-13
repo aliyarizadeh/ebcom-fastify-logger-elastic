@@ -1,7 +1,7 @@
 {
   "name": "@ebcom/fastify-logger-elastic",
   "version": "1.0.2",
-  "description": "Capture all logs from fastify framework without pino ",
+  "description": "Capture all logs from fastify framework send to elastic",
   "author": "Ali Yarizadeh",
   "main": "index.js",
   "scripts": {
