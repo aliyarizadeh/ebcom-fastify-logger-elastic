@@ -1,6 +1,6 @@
 {
   "name": "@ebcom/fastify-logger-elastic",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Capture all logs from fastify framework send to elastic",
   "author": "Ali Yarizadeh",
   "main": "index.js",
