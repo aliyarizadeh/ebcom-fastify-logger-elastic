@@ -1,4 +1,3 @@
-const { writeToFile } = require('./file');
 const { parseBody, logLevel } = require('./utils');
 
 let client;
@@ -30,7 +29,7 @@ const log = async (data, transactionId, message = 'Custom log') => {
             responsePayload: parseBody(data.body, 'RESPONSE')
           }
         },
-        timestamp: new Date()
+        '@timestamp': new Date()
       }
     };
   } else {
@@ -39,19 +38,15 @@ const log = async (data, transactionId, message = 'Custom log') => {
       body: {
         transactionId,
         message,
-        timestamp: new Date()
+        '@timestamp': new Date()
       }
     };
   }
 
   try {
-    if (!global.SAVE_TO_FILE) {
-      await client.index(data); // custom log
-    } else {
-      await writeToFile(data);
-    }
+    await client.index(data); // custom log
   } catch (e) {
-    await writeToFile(data);
+    //
   }
 
   return true;
@@ -91,16 +86,12 @@ const captureLog = async (req, res, payload) => {
           request,
           response
         },
-        timestamp: new Date()
+        '@timestamp': new Date()
       }
     };
-    if (!global.SAVE_TO_FILE) {
-      await client.index(data); // request log
-    } else {
-      await writeToFile(data);
-    }
+    await client.index(data); // request log
   } catch (e) {
-    await writeToFile(data);
+    //
   }
 
   return true;
@@ -122,19 +113,15 @@ const captureErrorLog = async (req, res, error) => {
   };
 
   try {
-    if (!global.SAVE_TO_FILE) {
-      await client.index(data); // Error
-    } else {
-      await writeToFile(data);
-    }
+    await client.index(data); // Error
   } catch (e) {
-    await writeToFile(data);
+    //
   }
 };
 
 const getClient = (elasticClient) => {
   if (elasticClient) client = elasticClient;
-  else global.SAVE_TO_FILE = true;
+  // else global.SAVE_TO_FILE = true;
 
   return client;
 };

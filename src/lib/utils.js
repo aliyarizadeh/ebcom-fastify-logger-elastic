@@ -1,4 +1,4 @@
-const path = require('path');
+// const path = require('path');
 const uuid = require('uuid');
 
 global.SAVE_TO_FILE = false;
@@ -9,9 +9,10 @@ global.GENERATE_ID = true;
 global.INTERVAL_TIME = 10;
 global.FILTER_FIELD = ['cvv2', 'pass', 'password', 'token', 'TOKEN', 'refresh_token', 'refreshToken', 'pin', 'pin1', 'authorization'];
 global.FILTER_TAGS = '';
+
 const idGenerator = () => (`${uuid.v4().replaceAll('-', '')}${uuid.v4().replaceAll('-', '')}`);
 
-function optionValidate(options) {
+function optionValidate (options) {
   if (options && typeof options !== 'object') throw new Error('Options should be an object');
   const validOptions = ['index', 'node', 'nodes', 'auth', 'maxRetries', 'requestTimeout', 'pingTimeout', 'sniffInterval', 'sniffOnStart', 'sniffEndpoint', 'sniffOnConnectionFault', 'resurrectStrategy',
     'suggestCompression', 'compression', 'tls', 'proxy', 'agent', 'nodeFilter', 'nodeSelector', 'generateRequestId', 'name', 'opaqueIdPrefix', 'headers', 'context', 'enableMetaHeader', 'cloud',
@@ -29,26 +30,26 @@ function optionValidate(options) {
   if (options.timer && (typeof options.timer === 'number' || !isNaN(options.timer))) global.INTERVAL_TIME = Number(options.timer);
   if (options.filter && Array.isArray(options.filter)) global.FILTER_FIELD = options.filter;
   if (Array.isArray(options.soapTags)) global.FILTER_TAGS = options.soapTags;
-  if (options.saveFile && typeof options.saveFile === 'boolean') {
-    global.SAVE_TO_FILE = true;
+  // if (options.saveFile && typeof options.saveFile === 'boolean') {
+  //   global.SAVE_TO_FILE = true;
 
-    if (options.path && typeof options.path === 'string' && path.isAbsolute(options.path)) {
-      // if (options.path[0] === '/') global.FILE_PATH = path.normalize(options.path.slice(1));
-      // if (options.startsWith('./')) global.FILE_PATH = path.normalize(options.path.slice(2));
-      global.FILE_PATH = options.path;
-    }
+  // if (options.path && typeof options.path === 'string' && path.isAbsolute(options.path)) {
+  // if (options.path[0] === '/') global.FILE_PATH = path.normalize(options.path.slice(1));
+  // if (options.startsWith('./')) global.FILE_PATH = path.normalize(options.path.slice(2));
+  //     global.FILE_PATH = options.path;
+  //   }
 
-    if (options.fileName && typeof fileName === 'string') {
-      if (options.fileName.endsWith('.log')) global.FILE_NAME = options.fileName;
-      else global.FILE_NAME = `${options.fileName}.log`;
-    }
-  }
+  //   if (options.fileName && typeof fileName === 'string') {
+  //     if (options.fileName.endsWith('.log')) global.FILE_NAME = options.fileName;
+  //     else global.FILE_NAME = `${options.fileName}.log`;
+  //   }
+  // }
 
   return options;
 };
 
-function serializer(data, writeToFile = false) {
-  let { request, response } = data?._doc;
+function serializer (data, writeToFile = false) {
+  let { request, response } = data?.body?._doc;
   const filtered = {};
 
   if (request && typeof request === 'string' && (request.startsWith('{') || request.startsWith('['))) request = JSON.parse(request);
@@ -65,13 +66,13 @@ function serializer(data, writeToFile = false) {
     if (response?.payload && response?.payload[f]) response.payload[f] = '***************';
   });
 
-  Object.assign(filtered, { ...data, request: writeToFile ? request : JSON.stringify(request), response: writeToFile ? response : JSON.stringify(response) });
+  Object.assign(filtered, { ...data, request, response }); // TODO check here
 
-  if (writeToFile) return filtered;
-  else return JSON.stringify(filtered);
+  // if (writeToFile) return filtered;
+  return filtered;
 };
 
-function logLevel(statusCode) {
+function logLevel (statusCode) {
   let level;
 
   if (statusCode && (statusCode >= 100 && statusCode < 400)) level = 30;
@@ -82,7 +83,7 @@ function logLevel(statusCode) {
   return level;
 };
 
-function parseBody(body, state) {
+function parseBody (body, state) {
   let data;
 
   if (state === 'REQUEST') {

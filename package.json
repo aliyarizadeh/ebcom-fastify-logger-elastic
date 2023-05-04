@@ -1,6 +1,6 @@
 {
   "name": "@ebcom/fastify-logger-elastic",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Capture all logs from fastify framework send to elastic",
   "author": "Ali Yarizadeh",
   "main": "index.js",
@@ -19,9 +19,8 @@
     "elk"
   ],
   "dependencies": {
-    "@elastic/elasticsearch": "^8.4.0",
+    "@elastic/elasticsearch": "8.7.0",
     "fastify-plugin": "^4.2.1",
-    "pino": "^8.7.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
